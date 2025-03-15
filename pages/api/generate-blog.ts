@@ -20,15 +20,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const topicsList = Array.isArray(topics) ? topics.join(", ") : topics
 
   const prompt = `
-    Generate a ${wordCount}-word SEO-friendly blog post for ${companyName}, a company based in ${location} within the ${industry} industry. 
-    Focus on topics: ${topicsList}. 
-    The company's values include: ${companyValues}.
-    Format the blog with engaging content, subheadings, and call-to-actions.
-    ${formatOptions.images ? "Include a description for an AI-generated image." : ""}
-    ${formatOptions.tables ? "Provide a structured table with relevant industry data." : ""}
-    ${formatOptions.charts ? "Describe a dataset suitable for a graph or chart." : ""}
+  Generate a ${wordCount}-word SEO-friendly blog post for ${companyName}, a company based in ${location} within the ${industry} industry. 
+  Focus on topics: ${Array.isArray(topicsList) ? topicsList.join(", ") : topicsList}. 
+  The company's values include: ${companyValues}.
+  Format the blog using strict Markdown syntax.
+  
+  ### Markdown Formatting Requirements:
+  - Use "#" for the blog post title.
+  - Use "##" and "###" for subheadings.
+  - Use "**bold**" and "*italic*" for emphasis.
+  - Use "-" or "*" for unordered lists.
+  - Use "1." for ordered lists.
+  - Use "|" and "---" to create Markdown tables (if applicable).
+  - If images are needed, return them as "![alt text](image_url)".
+  - **DO NOT** include explanations, notes, or comments.
+  - **DO NOT** include extra text before or after the Markdown content.
+  - **ONLY** return valid Markdown with no additional formatting.
+  
+  Return **only the Markdown-formatted blog post**.
   `
-
   try {
     const response = await fetch(LOCAL_AI_URL, {
       method: "POST",
@@ -43,6 +53,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const data = await response.json()
     const blogContent = data.response || "No response from local AI"
 
+    res.setHeader("Content-Type", "application/json")
     res.status(200).json({ blogContent })
   } catch (error) {
     res.status(500).json({ message: error.message })

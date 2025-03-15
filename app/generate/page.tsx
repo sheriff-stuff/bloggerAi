@@ -1,6 +1,7 @@
 "use client"
 
 import type React from "react"
+import ReactMarkdown from "react-markdown"
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
@@ -600,9 +601,9 @@ export default function GeneratePage() {
         </div>
 
         {blogContent && (
-          <div className="mt-8 p-4 bg-white rounded-lg shadow-md">
+          <div className="mt-8 p-6 bg-white rounded-lg shadow-md prose prose-slate max-w-none">
             <h2 className="text-2xl font-bold mb-4">Generated Blog Post</h2>
-            <div dangerouslySetInnerHTML={{ __html: blogContent }} />
+            <ReactMarkdown>{blogContent}</ReactMarkdown>
           </div>
         )}
 
