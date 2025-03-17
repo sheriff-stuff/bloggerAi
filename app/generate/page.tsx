@@ -105,17 +105,46 @@ export default function GeneratePage() {
     return data.blogContent
   }
 
+  const postBlogToWordPress = async (title: string, markdown: string) => {
+    console.log("Attempting to post blog to WordPress with title:", title)
+    const response = await fetch("/api/postToWordpress", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ blogTitle: title, blogMarkdown: markdown }),
+    })
+
+    if (!response.ok) {
+      console.error("Failed to post blog to WordPress. Status:", response.status)
+      throw new Error("Failed to post blog to WordPress")
+    }
+
+    const data = await response.json()
+    console.log("WordPress Response:", data)
+    return data.postUrl
+  }
+
   const [blogContent, setBlogContent] = useState<string | null>(null)
 
   const handleGenerate = async () => {
+    console.log("Starting blog generation process...")
     setIsGenerating(true)
     try {
+      console.log("Sending data to generate blog content:", formData)
       const content = await generateBlogContent()
+      console.log("Blog content generated successfully:", content)
       setBlogContent(content)
+
+      if (formData.autoPost && formData.platform === "wordpress") {
+        console.log("Auto-post is enabled. Posting blog to WordPress...")
+        const postUrl = await postBlogToWordPress("Generated Blog Post", content)
+        console.log("Blog posted to WordPress successfully. Post URL:", postUrl)
+        // Optionally, show a success message or redirect
+      }
     } catch (error) {
-      console.error(error)
+      console.error("Error during blog generation or posting:", error)
       // Handle error (e.g., show error message)
     } finally {
+      console.log("Blog generation process completed.")
       setIsGenerating(false)
     }
   }
