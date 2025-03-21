@@ -28,7 +28,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: "Basic " + btoa(`${username}:${appPassword}`),
+        Authorization: "Basic " + Buffer.from(`${username}:${appPassword}`).toString("base64"),
       },
       body: JSON.stringify({
         title: blogTitle,
