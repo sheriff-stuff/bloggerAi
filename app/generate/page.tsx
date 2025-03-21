@@ -1,6 +1,7 @@
 "use client"
 
 import type React from "react"
+import ReactMarkdown from "react-markdown"
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
@@ -87,13 +88,65 @@ export default function GeneratePage() {
     setCurrentStep((prev) => prev - 1)
   }
 
-  const handleGenerate = () => {
+  const generateBlogContent = async () => {
+    const response = await fetch("/api/generate-blog", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(formData),
+    })
+
+    if (!response.ok) {
+      throw new Error("Failed to generate blog content")
+    }
+
+    const data = await response.json()
+    return data.blogContent
+  }
+
+  const postBlogToWordPress = async (title: string, markdown: string) => {
+    console.log("Attempting to post blog to WordPress with title:", title)
+    const response = await fetch("/api/postToWordpress", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ blogTitle: title, blogMarkdown: markdown }),
+    })
+
+    if (!response.ok) {
+      console.error("Failed to post blog to WordPress. Status:", response.status)
+      throw new Error("Failed to post blog to WordPress")
+    }
+
+    const data = await response.json()
+    console.log("WordPress Response:", data)
+    return data.postUrl
+  }
+
+  const [blogContent, setBlogContent] = useState<string | null>(null)
+
+  const handleGenerate = async () => {
+    console.log("Starting blog generation process...")
     setIsGenerating(true)
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      console.log("Sending data to generate blog content:", formData)
+      const content = await generateBlogContent()
+      console.log("Blog content generated successfully:", content)
+      setBlogContent(content)
+
+      if (formData.autoPost && formData.platform === "wordpress") {
+        console.log("Auto-post is enabled. Posting blog to WordPress...")
+        const postUrl = await postBlogToWordPress("Generated Blog Post", content)
+        console.log("Blog posted to WordPress successfully. Post URL:", postUrl)
+        // Optionally, show a success message or redirect
+      }
+    } catch (error) {
+      console.error("Error during blog generation or posting:", error)
+      // Handle error (e.g., show error message)
+    } finally {
+      console.log("Blog generation process completed.")
       setIsGenerating(false)
-      // Redirect to success page or show success message
-    }, 3000)
+    }
   }
 
   return (
@@ -115,19 +168,25 @@ export default function GeneratePage() {
           <div className="flex justify-between items-center mb-6">
             <div className="flex space-x-2">
               <div
-                className={`h-10 w-10 rounded-full flex items-center justify-center ${currentStep >= 1 ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}
+                className={`h-10 w-10 rounded-full flex items-center justify-center ${
+                  currentStep >= 1 ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                }`}
               >
                 1
               </div>
               <div className={`h-1 w-16 self-center ${currentStep >= 2 ? "bg-primary" : "bg-muted"}`}></div>
               <div
-                className={`h-10 w-10 rounded-full flex items-center justify-center ${currentStep >= 2 ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}
+                className={`h-10 w-10 rounded-full flex items-center justify-center ${
+                  currentStep >= 2 ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                }`}
               >
                 2
               </div>
               <div className={`h-1 w-16 self-center ${currentStep >= 3 ? "bg-primary" : "bg-muted"}`}></div>
               <div
-                className={`h-10 w-10 rounded-full flex items-center justify-center ${currentStep >= 3 ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}
+                className={`h-10 w-10 rounded-full flex items-center justify-center ${
+                  currentStep >= 3 ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                }`}
               >
                 3
               </div>
@@ -570,6 +629,13 @@ export default function GeneratePage() {
           )}
         </div>
 
+        {blogContent && (
+          <div className="mt-8 p-6 bg-white rounded-lg shadow-md prose prose-slate max-w-none">
+            <h2 className="text-2xl font-bold mb-4">Generated Blog Post</h2>
+            <ReactMarkdown>{blogContent}</ReactMarkdown>
+          </div>
+        )}
+
         <div className="bg-muted/40 rounded-lg p-6 border">
           <div className="flex items-start space-x-4">
             <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
@@ -602,4 +668,3 @@ export default function GeneratePage() {
     </div>
   )
 }
-

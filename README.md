@@ -34,3 +34,20 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Local AI Setup
+
+To generate blog content, ensure you have `ollama` installed and running locally. Follow these steps:
+
+1. Start the `ollama` server:
+
+   ```bash
+   ollama serve
+   ```
+
+2. Run the `llama3.2` model:
+   ```bash
+   ollama run llama3.2
+   ```
+
+These commands are required for the API to communicate with the local AI model.
