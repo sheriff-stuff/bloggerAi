@@ -1,26 +1,36 @@
-"use client"
+import type React from "react"
+import { Inter } from "next/font/google"
+import { Toaster } from "@/components/ui/toaster"
+import { ClientThemeProvider } from "@/components/client-theme-provider"
+import { ThemeScript } from "@/components/theme-script"
+import "./globals.css"
+import Header from "@/components/header"
+import Footer from "@/components/footer"
 
-import * as React from "react"
-import * as LabelPrimitive from "@radix-ui/react-label"
-import { cva, type VariantProps } from "class-variance-authority"
+const inter = Inter({ subsets: ["latin"] })
 
-import { cn } from "@/lib/utils"
+export const metadata = {
+  title: "Blogger AI - Automated Blog Generation SaaS",
+  description: "AI-powered blog generation for businesses. Boost your SEO with automated, high-quality content.",
+}
 
-const labelVariants = cva(
-  "text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-)
-
-const Label = React.forwardRef<
-  React.ElementRef<typeof LabelPrimitive.Root>,
-  React.ComponentPropsWithoutRef<typeof LabelPrimitive.Root> &
-    VariantProps<typeof labelVariants>
->(({ className, ...props }, ref) => (
-  <LabelPrimitive.Root
-    ref={ref}
-    className={cn(labelVariants(), className)}
-    {...props}
-  />
-))
-Label.displayName = LabelPrimitive.Root.displayName
-
-export { Label }
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        {/* Add theme script to head to prevent flash of wrong theme */}
+        <ThemeScript />
+      </head>
+      <body className={inter.className} suppressHydrationWarning>
+        <ClientThemeProvider>
+          <div className="flex min-h-screen flex-col">
+            <Header />
+            <main className="flex-1">{children}</main>
+            <Footer />
+          </div>
+          <Toaster />
+        </ClientThemeProvider>
+      </body>
+    </html>
+  )
+}

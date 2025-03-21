@@ -1,6 +1,8 @@
 import type React from "react"
 import { Inter } from "next/font/google"
 import { Toaster } from "@/components/ui/toaster"
+import { ClientThemeProvider } from "@/components/client-theme-provider"
+import { ThemeScript } from "@/components/theme-script"
 import "./globals.css"
 import Header from "@/components/header"
 import Footer from "@/components/footer"
@@ -16,11 +18,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
-        <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)" />
+        {/* Add theme script to head to prevent flash of wrong theme */}
+        <ThemeScript />
       </head>
       <body className={inter.className} suppressHydrationWarning>
-        {/* ThemeProvider is now imported in the client component */}
         <ClientThemeProvider>
           <div className="flex min-h-screen flex-col">
             <Header />
@@ -33,11 +34,3 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     </html>
   )
 }
-
-// Import the client component using next dynamic import with ssr disabled
-import dynamic from "next/dynamic"
-
-const ClientThemeProvider = dynamic(
-  () => import("@/components/client-theme-provider").then((mod) => mod.ClientThemeProvider)
-  // { ssr: false }, // This ensures the component only renders on the client
-)
