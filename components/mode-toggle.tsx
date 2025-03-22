@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 
 export function ModeToggle() {
-  const { setTheme } = useTheme()
+  const { setTheme, theme } = useTheme()
   const [mounted, setMounted] = useState(false)
 
   // Only show the toggle after component has mounted to avoid hydration mismatch
@@ -36,11 +36,10 @@ export function ModeToggle() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => setTheme("light")}>Light</DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("dark")}>Dark</DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("system")}>System</DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setTheme("light")}>Light {theme === "light" && "✓"}</DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setTheme("dark")}>Dark {theme === "dark" && "✓"}</DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setTheme("system")}>System {theme === "system" && "✓"}</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   )
 }
-

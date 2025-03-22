@@ -3,17 +3,16 @@
 import type * as React from "react"
 import { ThemeProvider as NextThemesProvider } from "next-themes"
 
-export function ClientThemeProvider({
-  children,
-}: {
-  children: React.ReactNode
-}) {
-  // We're completely disabling SSR for this component
-  // This ensures theme-related code only runs on the client
+export function ClientThemeProvider({ children }: { children: React.ReactNode }) {
   return (
-    <NextThemesProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+    <NextThemesProvider
+      attribute="class"
+      defaultTheme="system"
+      enableSystem
+      disableTransitionOnChange
+      storageKey="theme" // Match the key used in theme-script
+    >
       {children}
     </NextThemesProvider>
   )
 }
-

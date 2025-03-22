@@ -3,10 +3,7 @@
 import Link from "next/link"
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import dynamic from "next/dynamic"
-
-// Import ModeToggle with SSR disabled to prevent hydration issues
-const ModeToggle = dynamic(() => import("@/components/mode-toggle").then((mod) => mod.ModeToggle), { ssr: false })
+import { ModeToggle } from "@/components/mode-toggle"
 import { usePathname } from "next/navigation"
 import { Menu, X } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -14,9 +11,11 @@ import { cn } from "@/lib/utils"
 export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [mounted, setMounted] = useState(false)
   const pathname = usePathname()
 
   useEffect(() => {
+    setMounted(true)
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 10)
     }
@@ -37,7 +36,7 @@ export default function Header() {
     <header
       className={cn(
         "sticky top-0 z-50 w-full transition-all duration-200",
-        isScrolled ? "bg-background/80 backdrop-blur-md border-b" : "bg-transparent",
+        isScrolled ? "bg-background/80 backdrop-blur-md border-b" : "bg-transparent"
       )}
     >
       <div className="container mx-auto px-4 py-3 flex items-center justify-between">
@@ -55,7 +54,7 @@ export default function Header() {
               href={item.href}
               className={cn(
                 "text-sm font-medium transition-colors hover:text-primary",
-                pathname === item.href ? "text-primary" : "text-muted-foreground",
+                pathname === item.href ? "text-primary" : "text-muted-foreground"
               )}
             >
               {item.name}
@@ -64,7 +63,7 @@ export default function Header() {
         </nav>
 
         <div className="hidden md:flex items-center space-x-4">
-          <ModeToggle />
+          {mounted && <ModeToggle />}
           <Button asChild variant="outline" size="sm">
             <Link href="/login">Login</Link>
           </Button>
@@ -75,7 +74,7 @@ export default function Header() {
 
         {/* Mobile Menu Button */}
         <div className="flex items-center space-x-4 md:hidden">
-          <ModeToggle />
+          {mounted && <ModeToggle />}
           <Button variant="ghost" size="icon" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
             {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
           </Button>
@@ -92,7 +91,7 @@ export default function Header() {
                 href={item.href}
                 className={cn(
                   "text-sm font-medium py-2 transition-colors hover:text-primary",
-                  pathname === item.href ? "text-primary" : "text-muted-foreground",
+                  pathname === item.href ? "text-primary" : "text-muted-foreground"
                 )}
                 onClick={() => setMobileMenuOpen(false)}
               >
@@ -113,4 +112,3 @@ export default function Header() {
     </header>
   )
 }
-
