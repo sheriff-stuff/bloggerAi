@@ -3,19 +3,30 @@
 import Link from "next/link"
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { ModeToggle } from "@/components/mode-toggle"
+import dynamic from "next/dynamic"
+import { useAuth } from "@/contexts/auth-context"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+
+// Import ModeToggle with SSR disabled to prevent hydration issues
+const ModeToggle = dynamic(() => import("@/components/mode-toggle").then((mod) => mod.ModeToggle), { ssr: false })
 import { usePathname } from "next/navigation"
-import { Menu, X } from "lucide-react"
+import { LogOut, Menu, User, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [mounted, setMounted] = useState(false)
   const pathname = usePathname()
+  const { user, signOut, loading } = useAuth()
 
   useEffect(() => {
-    setMounted(true)
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 10)
     }
@@ -32,11 +43,35 @@ export default function Header() {
     { name: "Contact", href: "/contact" },
   ]
 
+  // Get user initials for avatar
+  const getUserInitials = () => {
+    if (!user) return "U"
+
+    const userData = user.user_metadata
+    if (userData?.full_name) {
+      const nameParts = userData.full_name.split(" ")
+      if (nameParts.length >= 2) {
+        return `${nameParts[0][0]}${nameParts[1][0]}`.toUpperCase()
+      }
+      return userData.full_name[0].toUpperCase()
+    }
+
+    if (userData?.first_name && userData?.last_name) {
+      return `${userData.first_name[0]}${userData.last_name[0]}`.toUpperCase()
+    }
+
+    if (user.email) {
+      return user.email[0].toUpperCase()
+    }
+
+    return "U"
+  }
+
   return (
     <header
       className={cn(
         "sticky top-0 z-50 w-full transition-all duration-200",
-        isScrolled ? "bg-background/80 backdrop-blur-md border-b" : "bg-transparent"
+        isScrolled ? "bg-background/80 backdrop-blur-md border-b" : "bg-transparent",
       )}
     >
       <div className="container mx-auto px-4 py-3 flex items-center justify-between">
@@ -54,7 +89,7 @@ export default function Header() {
               href={item.href}
               className={cn(
                 "text-sm font-medium transition-colors hover:text-primary",
-                pathname === item.href ? "text-primary" : "text-muted-foreground"
+                pathname === item.href ? "text-primary" : "text-muted-foreground",
               )}
             >
               {item.name}
@@ -63,18 +98,84 @@ export default function Header() {
         </nav>
 
         <div className="hidden md:flex items-center space-x-4">
-          {mounted && <ModeToggle />}
-          <Button asChild variant="outline" size="sm">
-            <Link href="/login">Login</Link>
-          </Button>
-          <Button asChild size="sm">
-            <Link href="/signup">Sign Up</Link>
-          </Button>
+          <ModeToggle />
+
+          {!loading && (
+            <>
+              {user ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="rounded-full">
+                      <Avatar className="h-8 w-8">
+                        <AvatarFallback>{getUserInitials()}</AvatarFallback>
+                      </Avatar>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem className="font-medium">
+                      <User className="mr-2 h-4 w-4" />
+                      <span>{user.user_metadata?.full_name || user.email}</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link href="/dashboard">Dashboard</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/account">Account Settings</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => signOut()}>
+                      <LogOut className="mr-2 h-4 w-4" />
+                      <span>Log out</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                <>
+                  <Button asChild variant="outline" size="sm">
+                    <Link href="/login">Login</Link>
+                  </Button>
+                  <Button asChild size="sm">
+                    <Link href="/signup">Sign Up</Link>
+                  </Button>
+                </>
+              )}
+            </>
+          )}
         </div>
 
         {/* Mobile Menu Button */}
         <div className="flex items-center space-x-4 md:hidden">
-          {mounted && <ModeToggle />}
+          <ModeToggle />
+          {!loading && user && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="rounded-full">
+                  <Avatar className="h-8 w-8">
+                    <AvatarFallback>{getUserInitials()}</AvatarFallback>
+                  </Avatar>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem className="font-medium">
+                  <User className="mr-2 h-4 w-4" />
+                  <span>{user.user_metadata?.full_name || user.email}</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link href="/dashboard">Dashboard</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/account">Account Settings</Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => signOut()}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Log out</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
           <Button variant="ghost" size="icon" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
             {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
           </Button>
@@ -91,24 +192,27 @@ export default function Header() {
                 href={item.href}
                 className={cn(
                   "text-sm font-medium py-2 transition-colors hover:text-primary",
-                  pathname === item.href ? "text-primary" : "text-muted-foreground"
+                  pathname === item.href ? "text-primary" : "text-muted-foreground",
                 )}
                 onClick={() => setMobileMenuOpen(false)}
               >
                 {item.name}
               </Link>
             ))}
-            <div className="flex space-x-4 pt-2">
-              <Button asChild variant="outline" size="sm" className="flex-1">
-                <Link href="/login">Login</Link>
-              </Button>
-              <Button asChild size="sm" className="flex-1">
-                <Link href="/signup">Sign Up</Link>
-              </Button>
-            </div>
+            {!loading && !user && (
+              <div className="flex space-x-4 pt-2">
+                <Button asChild variant="outline" size="sm" className="flex-1">
+                  <Link href="/login">Login</Link>
+                </Button>
+                <Button asChild size="sm" className="flex-1">
+                  <Link href="/signup">Sign Up</Link>
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       )}
     </header>
   )
 }
+
